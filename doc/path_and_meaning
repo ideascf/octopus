@@ -1,0 +1,5 @@
+# service
+在service节点下存储各个服务模块的地址信息，如 `/service/payonline/00000001`,存储的是payonline服务集群中id为'00000001'的服务地址。
+
+# config
+在config节点下存储一些公共配置信息。 如
