@@ -39,7 +39,9 @@ class OctpClient():
         }
         """:type: dict[str, set[Waiter]]"""
 
-    def init(self):
+        self._init()
+
+    def _init(self):
         for service_name in self.service_names:
             self.service_dict[service_name] = []
 
@@ -80,7 +82,7 @@ class OctpClient():
         """
 
         for waiter in self._waiter_dict[service_name]:
-            waiter.switch(action)
+            gevent.get_hub().loop.run_callback(lambda : waiter.switch(action))
 
     #### 监听service的改动 ####
     def _start_watcher(self):
@@ -88,9 +90,12 @@ class OctpClient():
 
     def _watcher_handler(self, service_name):
         while True:
-            # TODO 这里可能会丢失事件
-            result = service_proto.watch(self._ec, service_name)
-            self._deal_watch_result(service_name, result)
+            try:
+                result = service_proto.watch(self._ec, service_name, timeout=10)
+                self._deal_watch_result(service_name, result)
+            except etcd.EtcdWatchTimedOut:
+                log.debug('watch timeout.')
+                continue
 
     def _deal_watch_result(self, service_name, result):
         """
@@ -100,6 +105,7 @@ class OctpClient():
         :return:
         """
 
+        log.debug('service change: %s', result)
         action = constant.SERVICE_ACTION.NONE
 
         if result.action in ('create',):
@@ -111,6 +117,8 @@ class OctpClient():
         elif result.action in ('set', 'compareAndSwap'):
             self._update_service(service_name, result)
             action = constant.SERVICE_ACTION.UPDATE
+        elif result.action in ('update',):
+            pass
         else:
             raise err.OctpServiceInvalidState('Encounter invalid action: %s', result.action)
 
@@ -148,7 +156,7 @@ class OctpClient():
 
         service_list = self.service_dict[service_name]
 
-        for index, old_service in service_list:
+        for index, old_service in enumerate(service_list):
             if old_service.name == result.key:
                 break
         else:
@@ -169,7 +177,7 @@ class OctpClient():
 
         service_list = self.service_dict[service_name]
 
-        for index, old_service in service_list:
+        for index, old_service in enumerate(service_list):
             if old_service.name == result.key:
                 break
         else:

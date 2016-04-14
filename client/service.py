@@ -1,6 +1,10 @@
 # coding=utf-8
-import datetime
-import etcd
+import json
+import logging
+
+import constant
+
+log = logging.getLogger(constant.LOGGER_NAME)
 
 class Service(object):
     def __init__(self, service_info):
@@ -17,3 +21,16 @@ class Service(object):
 
         self._result = None
         """:type: etcd.EtcdResult"""
+
+        self._parse(service_info)
+
+    def _parse(self, service_info):
+        try:
+            info = json.loads(service_info)
+            """:type: dict"""
+
+            self.addr = info['addr']
+            self.timeout = info.get('timeout')
+        except Exception as e:
+            log.warn('parse service_info error: %s', e)
+

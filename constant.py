@@ -20,3 +20,8 @@ class SERVICE_ACTION:
     DEL = 'del'
     UPDATE = 'update'
     NONE = 'none'
+
+SERVICE_REFRESH_INTERVAL = 20
+SERVICE_TTL = 30
+
+WATCH_TIMEOUT=10

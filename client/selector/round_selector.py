@@ -1,16 +1,14 @@
 # coding=utf-8
-from gevent import queue
-import traceback
 import logging
 
 from ._base import BaseSelector
-import err, constant
+import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
 class RoundSelector(BaseSelector):
-    def __init__(self, ec, service_name):
-        super(RoundSelector, self).__init__(ec, service_name)
+    def __init__(self, oc, service_name):
+        super(RoundSelector, self).__init__(oc, service_name)
 
         self._cur_index = 0
 

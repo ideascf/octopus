@@ -21,10 +21,17 @@ def register(ec, service_name, service_addr):
     :rtype: str
     """
 
-    if not all(key in service_addr.iterkeys() for key in ['host', 'port']):
+
+    if not {'host', 'port'}.issubset(service_addr.keys()):
         raise err.OctpParamError('service_addr must contain "host" and "port".')
 
-    result = ec.write(tools.service_dir_name(service_name), service_addr, append=True)
+    result = ec.write(
+        tools.service_dir_name(service_name),
+        service_addr,
+        append=True,
+        ttl=constant.SERVICE_TTL
+    )
+    log.debug('new key: %s', result.key)
 
     return result.key
 
@@ -62,3 +69,33 @@ def watch(ec, service_name, timeout=None):
     """
 
     return ec.watch(tools.service_dir_name(service_name), timeout=timeout, recursive=True)
+
+
+def alive(ec, service_name, service_token):
+    """
+
+    :param ec:
+    :param service_name:
+    :param service_token:
+    :type ec: etcd.Client
+    :return:
+    """
+
+    # this way, not upload 'refresh', so can't only refresh ttl.
+    # return ec.write(
+    #     service_token,
+    #     None,
+    #     ttl=constant.SERVICE_TTL,
+    #     refresh=True,
+    #     prevExist=True,  # refresh and prevExist, can refresh ttl only.
+    # )
+
+    return ec.api_execute(
+        '/v2/keys/'+service_token,
+        ec._MPUT,
+        {
+            'refresh': True,
+            'prevExist': True,
+            'ttl': constant.SERVICE_TTL,
+        }
+    )

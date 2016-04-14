@@ -1,5 +1,8 @@
 # coding=utf-8
+import os
+
 import constant
+
 
 def service_dir_name(service_name):
     """
@@ -10,4 +13,4 @@ def service_dir_name(service_name):
     :rtype: str
     """
 
-    return constant.SERVICE_NODE + service_name
+    return os.path.join(constant.SERVICE_NODE, service_name)

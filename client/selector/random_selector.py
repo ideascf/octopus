@@ -2,7 +2,6 @@
 import random
 
 from ._base import BaseSelector
-import constant
 
 class RandomSelector(BaseSelector):
     def _get_service(self):
