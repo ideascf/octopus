@@ -7,6 +7,17 @@ class OctpError(Exception):
     pass
 
 
+#### for etcd ####
+class OctpEtcdError(OctpError):
+    pass
+
+class OctpEtcdConnectError(OctpEtcdError):
+    """
+    Connect to etcd failed.
+    """
+    pass
+
+
 #### 服务相关 ####
 class OctpServiceError(OctpError):
     """
