@@ -45,8 +45,25 @@ class OctpClient():
         for service_name in self.service_names:
             self.service_dict[service_name] = []
 
+        self._get_initialize_service()  # 获取当前的service列表
         gevent.spawn(self._start_watcher)  # 开启独立的协程用于监听service的变更
 
+    def _get_initialize_service(self):
+        for service_name in self.service_names:
+            try:
+                result = service_proto.get(self._ec, service_name)
+            except err.OctpServiceNotFoundError:
+                log.warn('Now, NO node for service(%s).', service_name)
+                continue
+
+            if not result._children:
+                log.warn('Now, NO any server for service(%s).', service_name)
+            else:
+                for service_node in result.leaves:
+                    self._add_service(service_name, service_node)
+
+
+    #### waiter ####
     def add_waiter(self, service_name, waiter):
         """
         向指定service_name下增加一个waiter， 以等待该service_name下有新的事件发生
@@ -124,6 +141,8 @@ class OctpClient():
 
         self._notify_waiter(service_name, action)
 
+        log.debug('Now, service_dict: %s', self.service_dict)
+
     def _add_service(self, service_name, result):
         """
 
@@ -143,6 +162,7 @@ class OctpClient():
             return
 
         service_list.append(new_service)
+        log.info('Add service (%s : %s)', service_name, new_service)
 
     def _del_service(self, service_name, result):
         """
@@ -164,6 +184,7 @@ class OctpClient():
             return
 
         del service_list[index]
+        log.info('Del service (%s : %s)', service_name, old_service)
 
     def _update_service(self, service_name, result):
         """
@@ -192,3 +213,4 @@ class OctpClient():
             return
         else:
             service_list[index] = new_service
+            log.info('Update service (%s : %s -> %s)', service_name, old_service, new_service)
