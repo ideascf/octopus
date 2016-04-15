@@ -2,32 +2,36 @@
 import traceback
 import etcd
 import logging
+import json
 
 import err, constant
 from util import tools
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
-def register(ec, service_name, service_addr):
+def register(ec, service_name, service_info):
     """
 
     :param ec: etcd的客户端对象
     :param service_name:
-    :param service_addr:
+    :param service_info:
     :type ec: etcd.Client
     :type service_name: str
-    :type service_addr: dict
+    :type service_info: dict
     :return:
     :rtype: str
     """
 
 
-    if not {'host', 'port'}.issubset(service_addr.keys()):
+    add_info = service_info.get('addr')
+    if not add_info\
+            or not {'host', 'port'}.issubset(add_info.keys()):
         raise err.OctpParamError('service_addr must contain "host" and "port".')
+
 
     result = ec.write(
         tools.service_dir_name(service_name),
-        service_addr,
+        json.dumps(service_info),
         append=True,
         ttl=constant.SERVICE_TTL
     )
@@ -71,6 +75,23 @@ def watch(ec, service_name, timeout=None):
     return ec.watch(tools.service_dir_name(service_name), timeout=timeout, recursive=True)
 
 
+def get(ec, service_name):
+    """
+
+    :param ec:
+    :param service_name:
+    :type ec: etcd.Client
+    :return:
+    """
+
+    try:
+        result = ec.get(tools.service_dir_name(service_name))
+    except etcd.EtcdKeyNotFound:
+        raise err.OctpServiceNotFoundError('Can NOT find service(%s) from etcd', service_name)
+    else:
+        return result
+
+
 def alive(ec, service_name, service_token):
     """
 
@@ -81,7 +102,7 @@ def alive(ec, service_name, service_token):
     :return:
     """
 
-    # this way, not upload 'refresh', so can't only refresh ttl.
+    # this way, not upload parameter 'refresh', so can't only refresh ttl.
     # return ec.write(
     #     service_token,
     #     None,
