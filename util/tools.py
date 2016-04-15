@@ -14,3 +14,19 @@ def service_dir_name(service_name):
     """
 
     return os.path.join(constant.SERVICE_NODE, service_name)
+
+
+def locker_name(service_name):
+    """
+
+    :param service_name:
+    :return:
+    :rtype: str
+    """
+
+    # Don't start with '/'
+    name = os.path.join(constant.LOCKER_NODE, service_name)
+    if name.startswith('/'):
+        return name[1:]
+    else:
+        return name

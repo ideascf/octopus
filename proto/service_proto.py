@@ -68,12 +68,27 @@ def watch(ec, service_name, timeout=None):
     :param service_name:
     :param timeout:
     :type ec: etcd.Client
-    :type
+    :type service_name: str
+    :type timeout: float
     :return:
     """
 
     return ec.watch(tools.service_dir_name(service_name), timeout=timeout, recursive=True)
 
+
+def watch_locker(ec, service_locker_key, timeout=None):
+    """
+    watch locker's change.
+    :param ec:
+    :param service_locker_key:
+    :param timeout:
+    :type ec: etcd.Client
+    :type service_locker_key: str
+    :type timeout: float
+    :return:
+    """
+
+    return ec.watch(service_locker_key, timeout=timeout, recursive=True)
 
 def get(ec, service_name):
     """
@@ -91,6 +106,17 @@ def get(ec, service_name):
     else:
         return result
 
+
+def locker(ec, service_name):
+    """
+
+    :param ec:
+    :param service_name:
+    :type ec: etcd.Client
+    :return:
+    """
+
+    return etcd.Lock(ec, tools.locker_name(service_name))
 
 def alive(ec, service_name, service_token):
     """
@@ -120,3 +146,5 @@ def alive(ec, service_name, service_token):
             'ttl': constant.SERVICE_TTL,
         }
     )
+
+

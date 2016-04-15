@@ -2,11 +2,12 @@
 
 # octopus在etcd中的根节点
 ROOT_NODE = '/octopus'
-# service信息在etcd的节点
+# service信息在etcd中的节点
 SERVICE_NODE = ROOT_NODE + '/service'
-# config信息在etcd的节点
+# config信息在etcd中的节点
 CONFIG_NODE = ROOT_NODE + '/config'
-
+# locker 信息在etcd中的节点
+LOCKER_NODE = ROOT_NODE + '/locker'
 
 # logger_name
 LOGGER_NAME = 'octopus'
@@ -34,3 +35,11 @@ ETCD_RECONNECT_INTERVAL = 3
 ETCD_RECONNECT_MAX_RETRY_INIT = 5
 # 尝试连接的等待时间
 ETCD_CONNECT_TIMEOUT = 3
+
+
+# election
+class Election:
+    MAX_RETRY = 3  # 选举中最大尝试次数
+    TIMEOUT = 3  # 选举中的等待超时时间
+    LOCKER_TTL = 5  # 选举中使用的locker的过期时间
+    LOCK_INTERVAL = 3  # 刷新locker的间隔时间
