@@ -3,17 +3,45 @@ import gevent
 from gevent import monkey
 monkey.patch_all()
 
+import socket
 import logging
 import sys
+from gevent import server
+import random
 
 from server import octp_server
 octp_server.log.setLevel('DEBUG')
 octp_server.log.addHandler(logging.StreamHandler(sys.stdout))
 
-def handler():
-    while True:
-        print 'hello'
-        gevent.sleep(10)
+server_info = {
+    'addr': {'host': 'localhost', 'port': random.randint(9000, 10000)},
+    'timeout': 1000,
+}
 
-oc = octp_server.OctpServer({}, 'test', {'host': 'localhost', 'port': 9999})
-oc.run(handler, gevent.spawn)
+def handle(client, addr):
+    """
+
+    :param client:
+    :param addr:
+    :type client: socket.SocketType
+    :return:
+    """
+
+    print client
+    print client.recv(1024)
+    client.send('pong')
+
+    client.close()
+
+def main():
+    os = octp_server.OctpServer({}, 'test', server_info)
+    s = server.StreamServer(tuple(server_info['addr'].values()), handle)
+    s.start()
+
+    os.init()
+    s.serve_forever()
+    os.destroy()
+
+
+if __name__ == '__main__':
+    main()
