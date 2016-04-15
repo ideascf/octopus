@@ -21,7 +21,9 @@ class RoundSelector(BaseSelector):
 
         if len(self._service_lsit) != 0:
             self._cur_index = (self._cur_index + 1) % len(self._service_lsit)
+            log.debug('cur_index: %d', self._cur_index)
 
+            log.debug('service_list: %s', self._service_lsit)
             return self._service_lsit[self._cur_index]
         else:
             return None

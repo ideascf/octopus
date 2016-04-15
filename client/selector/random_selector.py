@@ -5,4 +5,7 @@ from ._base import BaseSelector
 
 class RandomSelector(BaseSelector):
     def _get_service(self):
-        return random.choice(self._service_lsit)
+        if len(self._service_lsit) != 0:
+            return random.choice(self._service_lsit)
+        else:
+            return None
