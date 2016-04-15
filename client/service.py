@@ -6,6 +6,8 @@ import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+_SERVICE_STR_FORMATTER = '{name}: {addr}'
+
 class Service(object):
     def __init__(self, service_info):
         self.addr = None  # 该服务地址，形如 {"addr": "1.2.3.4", "port": 8888}
@@ -27,6 +29,7 @@ class Service(object):
     def _parse(self, service_info):
         try:
             info = json.loads(service_info)
+            log.debug('service_info: %s', info)
             """:type: dict"""
 
             self.addr = info['addr']
@@ -34,3 +37,5 @@ class Service(object):
         except Exception as e:
             log.warn('parse service_info error: %s', e)
 
+    def __str__(self):
+        return _SERVICE_STR_FORMATTER.format(name=self.name, addr=self.addr)
