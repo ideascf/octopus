@@ -5,9 +5,9 @@ monkey.patch_all()
 
 import logging
 
-from server.election import Election
+from election.election import Election
 from server.octp_server import OctpServer
-from server.election import log
+from election.election import log
 
 log.setLevel('DEBUG')
 import sys
