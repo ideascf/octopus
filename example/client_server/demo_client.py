@@ -10,8 +10,9 @@ import socket
 from client import octp_client
 from client.selector import round_selector, random_selector
 
-octp_client.log.setLevel('DEBUG')
-octp_client.log.addHandler(logging.StreamHandler(sys.stdout))
+from logger import log
+log.setLevel('DEBUG')
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 oc = octp_client.OctpClient({}, ['test', 'foo'])
 # sel = round_selector.RoundSelector(oc, 'test')

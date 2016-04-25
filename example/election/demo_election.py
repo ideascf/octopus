@@ -4,13 +4,13 @@ from gevent import monkey
 monkey.patch_all()
 
 import logging
+import sys
 
 from election.election import Election
 from server.octp_server import OctpServer
-from election.election import log
 
+from logger import log
 log.setLevel('DEBUG')
-import sys
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 def handler():

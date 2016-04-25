@@ -10,8 +10,10 @@ from gevent import server
 import random
 
 from server import octp_server
-octp_server.log.setLevel('DEBUG')
-octp_server.log.addHandler(logging.StreamHandler(sys.stdout))
+
+from logger import log
+log.setLevel('DEBUG')
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 server_info = {
     'addr': {'host': 'localhost', 'port': random.randint(9000, 10000)},
