@@ -1,15 +1,13 @@
 # coding=utf-8
-import gevent
 from gevent import monkey
 monkey.patch_all()
 
-import socket
 import logging
 import sys
 from gevent import server
 import random
 
-from server import octp_server
+from service import octp_server
 
 from logger import log
 log.setLevel('DEBUG')

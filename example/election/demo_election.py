@@ -7,7 +7,7 @@ import logging
 import sys
 
 from election.election import Election
-from server.octp_server import OctpServer
+from service.octp_server import OctpServer
 
 from logger import log
 log.setLevel('DEBUG')

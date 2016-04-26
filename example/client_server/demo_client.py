@@ -7,8 +7,8 @@ import sys
 import logging
 import socket
 
-from client import octp_client
-from client.selector import round_selector, random_selector
+from service import octp_client
+from service.selector import round_selector, random_selector
 
 from logger import log
 log.setLevel('DEBUG')

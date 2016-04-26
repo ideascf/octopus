@@ -6,7 +6,7 @@ from gevent.hub import Waiter
 from gevent import Timeout
 import time
 
-from client.octp_client import OctpClient
+from service.octp_client import OctpClient
 import err
 import constant
 
