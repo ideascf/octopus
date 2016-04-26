@@ -12,6 +12,7 @@ LOCKER_NODE = ROOT_NODE + '/locker'
 # logger_name
 LOGGER_NAME = 'octopus'
 
+
 class SERVICE_ACTION:
     """
     service 变更操作
@@ -27,7 +28,7 @@ SERVICE_REFRESH_INTERVAL = 20
 # service节点的过期时间
 SERVICE_TTL = 30
 # watch操作的超时时间
-WATCH_TIMEOUT=10
+WATCH_TIMEOUT = 10
 
 # server端，尝试重连etcd的的间隔时间
 ETCD_RECONNECT_INTERVAL = 3

@@ -13,10 +13,12 @@ from logger import log
 log.setLevel('DEBUG')
 log.addHandler(logging.StreamHandler(sys.stdout))
 
+
 def handler():
     print "i'm master."
     gevent.sleep(20)
     print "i'm dead"
+
 
 def main():
     os = OctpServer({}, 'locker_demo', None)

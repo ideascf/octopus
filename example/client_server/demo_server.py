@@ -20,6 +20,7 @@ server_info = {
     'timeout': 1000,
 }
 
+
 def handle(client, addr):
     """
 
@@ -34,6 +35,7 @@ def handle(client, addr):
     client.send('pong')
 
     client.close()
+
 
 def main():
     os = octp_server.OctpServer({}, 'test', server_info)

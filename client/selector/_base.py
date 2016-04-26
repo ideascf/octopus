@@ -12,10 +12,13 @@ import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class _TimeOut(Exception):
     pass
 
+
 class BaseSelector(object):
+
     def __init__(self, oc, service_name):
         """
 
@@ -48,7 +51,6 @@ class BaseSelector(object):
     def _get_service(self):
         raise NotImplementedError
 
-
     def _wait(self, action=None, timeout=None):
         """
         等待本service_name下的service变更
@@ -66,7 +68,7 @@ class BaseSelector(object):
                 with Timeout(remain, _TimeOut):
                     start = time.time()
                     cur_action = waiter.get()
-                    remain =  remain - (time.time() - start)
+                    remain = remain - (time.time() - start)
 
                     if action is None:  # 没有特别指明需要的动作
                         break
@@ -84,5 +86,3 @@ class BaseSelector(object):
             return True
         finally:
             self._oc.del_waiter(self.service_name, waiter)
-
-

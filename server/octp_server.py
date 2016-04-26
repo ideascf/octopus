@@ -10,7 +10,9 @@ from proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class OctpServer():
+
     def __init__(self, etcd_options, service_name, service_addr):
         self.etcd_options = etcd_options
         self.service_name = service_name
@@ -34,7 +36,6 @@ class OctpServer():
 
     def destroy(self):
         service_proto.unregister(self.ec, self._token)
-
 
     def _start_watcher(self):
         """

@@ -10,6 +10,7 @@ from proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class Election(object):
 
     def __init__(self, os):
@@ -36,7 +37,6 @@ class Election(object):
 
         if not callable(handle):
             raise err.OctpProgramError('Parameter `handler` must be callable.')
-
 
         while True:
             self._election()  # do election

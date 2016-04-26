@@ -1,5 +1,6 @@
 # coding=utf-8
 
+
 class OctpError(Exception):
     """
     异常基类
@@ -10,6 +11,7 @@ class OctpError(Exception):
 #### for etcd ####
 class OctpEtcdError(OctpError):
     pass
+
 
 class OctpEtcdConnectError(OctpEtcdError):
     """

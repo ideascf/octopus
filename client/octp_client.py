@@ -6,11 +6,14 @@ from gevent.hub import Waiter
 
 from . import service
 from proto import service_proto
-import err, constant
+import err
+import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class OctpClient():
+
     def __init__(self, etcd_options, service_names):
         """
 
@@ -62,7 +65,6 @@ class OctpClient():
                 for service_node in result.leaves:
                     self._add_service(service_name, service_node)
 
-
     #### waiter ####
     def add_waiter(self, service_name, waiter):
         """
@@ -99,7 +101,7 @@ class OctpClient():
         """
 
         for waiter in self._waiter_dict[service_name]:
-            gevent.get_hub().loop.run_callback(lambda : waiter.switch(action))
+            gevent.get_hub().loop.run_callback(lambda: waiter.switch(action))
 
     #### 监听service的改动 ####
     def _start_watcher(self):

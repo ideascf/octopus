@@ -6,7 +6,9 @@ import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class RoundSelector(BaseSelector):
+
     def __init__(self, oc, service_name):
         super(RoundSelector, self).__init__(oc, service_name)
 
