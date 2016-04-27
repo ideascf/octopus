@@ -5,7 +5,7 @@ import gevent
 
 import err
 import constant
-from octopus.server.octp_server import OctpServer
+from service.octp_server import OctpServer
 from proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
