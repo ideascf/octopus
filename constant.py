@@ -23,6 +23,16 @@ class SERVICE_ACTION:
     UPDATE = 'update'
     NONE = 'none'
 
+class CONFIG_ACTION:
+    """
+    config action
+    """
+
+    ADD = 'add'
+    DEL = 'del'
+    UPDATE = 'update'
+    NONE = 'none'
+
 # 刷新service节点的间隔时间
 SERVICE_REFRESH_INTERVAL = 20
 # service节点的过期时间

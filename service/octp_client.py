@@ -12,7 +12,7 @@ import constant
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpClient():
+class OctpClient(object):
 
     def __init__(self, etcd_options, service_names):
         """
@@ -80,7 +80,6 @@ class OctpClient():
         service_list.remove(service)
         self._diabled_service_list.append(service)
 
-
     def _get_service_list(self, service_name):
         """
         Get service_list for the service_name.
@@ -141,14 +140,14 @@ class OctpClient():
                 result = service_proto.watch(self._ec, service_name, timeout=10)
                 self._deal_watch_result(service_name, result)
             except etcd.EtcdWatchTimedOut:
-                log.debug('watch timeout.')
+                log.debug('service watch timeout.')
                 continue
 
     def _deal_watch_result(self, service_name, result):
         """
 
         :param result: watch 返回的EtcdResult对象
-        :type result: etct.EtcdResult
+        :type result: etcd.EtcdResult
         :return:
         """
 

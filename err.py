@@ -20,7 +20,7 @@ class OctpEtcdConnectError(OctpEtcdError):
     pass
 
 
-#### 服务相关 ####
+#### service相关 ####
 class OctpServiceError(OctpError):
     """
     服务相关错误
@@ -60,6 +60,26 @@ class OctpServiceAllFault(OctpServiceError):
     """
     All service are fault. Should check service provider.
     """
+
+#### About config ####
+class OctpConfigError(OctpError):
+    """
+    Base class for config error.
+    """
+    pass
+
+
+class OctpConfigNotFoundError(OctpConfigError):
+    """
+    Can't find special config node in etcd
+    """
+    pass
+
+
+class OctpConfigInvalidState(OctpConfigError):
+    """
+    """
+    pass
 
 
 #### 统计相关 ####

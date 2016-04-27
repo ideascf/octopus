@@ -11,7 +11,7 @@ from proto import service_proto
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpServer():
+class OctpServer(object):
 
     def __init__(self, etcd_options, service_name, service_addr):
         self.etcd_options = etcd_options
