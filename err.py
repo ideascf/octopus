@@ -49,6 +49,19 @@ class OctpServiceInvalidState(OctpServiceError):
     pass
 
 
+class OctpServiceUnavailable(OctpServiceError):
+    """
+    Current service is Unavailable.  Should retry next service.
+    """
+    pass
+
+
+class OctpServiceAllFault(OctpServiceError):
+    """
+    All service are fault. Should check service provider.
+    """
+
+
 #### 统计相关 ####
 class OctpStatError(OctpError):
     """
