@@ -1,5 +1,6 @@
 # coding=utf-8
 
+
 class OctpError(Exception):
     """
     异常基类
@@ -10,6 +11,7 @@ class OctpError(Exception):
 #### for etcd ####
 class OctpEtcdError(OctpError):
     pass
+
 
 class OctpEtcdConnectError(OctpEtcdError):
     """
@@ -45,6 +47,19 @@ class OctpServiceInvalidState(OctpServiceError):
     非法的状态
     """
     pass
+
+
+class OctpServiceUnavailable(OctpServiceError):
+    """
+    Current service is Unavailable.  Should retry next service.
+    """
+    pass
+
+
+class OctpServiceAllFault(OctpServiceError):
+    """
+    All service are fault. Should check service provider.
+    """
 
 
 #### 统计相关 ####

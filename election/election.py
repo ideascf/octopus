@@ -5,10 +5,11 @@ import gevent
 
 import err
 import constant
-from .octp_server import OctpServer
+from service.octp_server import OctpServer
 from proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
+
 
 class Election(object):
 
@@ -36,7 +37,6 @@ class Election(object):
 
         if not callable(handle):
             raise err.OctpProgramError('Parameter `handler` must be callable.')
-
 
         while True:
             self._election()  # do election

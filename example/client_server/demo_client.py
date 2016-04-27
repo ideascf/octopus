@@ -7,15 +7,17 @@ import sys
 import logging
 import socket
 
-from client import octp_client
-from client.selector import round_selector, random_selector
+from service import octp_client
+from service.selector import round_selector, random_selector
 
-octp_client.log.setLevel('DEBUG')
-octp_client.log.addHandler(logging.StreamHandler(sys.stdout))
+from logger import log
+log.setLevel('DEBUG')
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 oc = octp_client.OctpClient({}, ['test', 'foo'])
 # sel = round_selector.RoundSelector(oc, 'test')
 sel = random_selector.RandomSelector(oc, 'test')
+
 
 def main():
     while True:
@@ -27,7 +29,6 @@ def main():
             sock.connect(tuple(service.addr.values()))
             sock.send('ping')
             print sock.recv(1024)
-
 
         gevent.sleep(1)
 

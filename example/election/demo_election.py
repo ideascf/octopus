@@ -4,19 +4,21 @@ from gevent import monkey
 monkey.patch_all()
 
 import logging
-
-from server.election import Election
-from server.octp_server import OctpServer
-from server.election import log
-
-log.setLevel('DEBUG')
 import sys
+
+from election.election import Election
+from service.octp_server import OctpServer
+
+from logger import log
+log.setLevel('DEBUG')
 log.addHandler(logging.StreamHandler(sys.stdout))
+
 
 def handler():
     print "i'm master."
     gevent.sleep(20)
     print "i'm dead"
+
 
 def main():
     os = OctpServer({}, 'locker_demo', None)

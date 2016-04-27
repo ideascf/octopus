@@ -1,5 +1,6 @@
-# client and service
+# client, server and service
 from .octp_client import OctpClient
+from .octp_server import OctpServer
 from .service import Service
 
 # selector

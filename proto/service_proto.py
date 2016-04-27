@@ -4,10 +4,12 @@ import etcd
 import logging
 import json
 
-import err, constant
+import err
+import constant
 from util import tools
 
 log = logging.getLogger(constant.LOGGER_NAME)
+
 
 def register(ec, service_name, service_info):
     """
@@ -22,12 +24,10 @@ def register(ec, service_name, service_info):
     :rtype: str
     """
 
-
     add_info = service_info.get('addr')
     if not add_info\
             or not {'host', 'port'}.issubset(add_info.keys()):
         raise err.OctpParamError('service_addr must contain "host" and "port".')
-
 
     result = ec.write(
         tools.service_dir_name(service_name),
@@ -90,6 +90,7 @@ def watch_locker(ec, service_locker_key, timeout=None):
 
     return ec.watch(service_locker_key, timeout=timeout, recursive=True)
 
+
 def get(ec, service_name):
     """
 
@@ -118,6 +119,7 @@ def locker(ec, service_name):
 
     return etcd.Lock(ec, tools.locker_name(service_name))
 
+
 def alive(ec, service_name, service_token):
     """
 
@@ -138,7 +140,7 @@ def alive(ec, service_name, service_token):
     # )
 
     return ec.api_execute(
-        '/v2/keys/'+service_token,
+        '/v2/keys/' + service_token,
         ec._MPUT,
         {
             'refresh': True,
@@ -146,5 +148,3 @@ def alive(ec, service_name, service_token):
             'ttl': constant.SERVICE_TTL,
         }
     )
-
-

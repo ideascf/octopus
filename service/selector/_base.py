@@ -6,16 +6,20 @@ from gevent.hub import Waiter
 from gevent import Timeout
 import time
 
-from client.octp_client import OctpClient
+from service.octp_client import OctpClient
+from service.service import Service
 import err
 import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class _TimeOut(Exception):
     pass
 
+
 class BaseSelector(object):
+
     def __init__(self, oc, service_name):
         """
 
@@ -45,9 +49,18 @@ class BaseSelector(object):
 
         return self._get_service()
 
+    def disable_service(self, service):
+        """
+
+        :param service:
+        :type service: Service
+        :return:
+        """
+
+        self._oc.disable_service(service)
+
     def _get_service(self):
         raise NotImplementedError
-
 
     def _wait(self, action=None, timeout=None):
         """
@@ -66,7 +79,7 @@ class BaseSelector(object):
                 with Timeout(remain, _TimeOut):
                     start = time.time()
                     cur_action = waiter.get()
-                    remain =  remain - (time.time() - start)
+                    remain = remain - (time.time() - start)
 
                     if action is None:  # 没有特别指明需要的动作
                         break
@@ -84,5 +97,3 @@ class BaseSelector(object):
             return True
         finally:
             self._oc.del_waiter(self.service_name, waiter)
-
-

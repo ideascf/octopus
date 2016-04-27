@@ -4,13 +4,16 @@ import gevent
 import logging
 from gevent.hub import Waiter
 
-from . import service
+from .service import Service
 from proto import service_proto
-import err, constant
+import err
+import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
+
 class OctpClient():
+
     def __init__(self, etcd_options, service_names):
         """
 
@@ -23,7 +26,9 @@ class OctpClient():
 
         self.service_names = service_names
         self.service_dict = {}  # 所有service_name 对应的service list
-        """:type: dict[str, list[service.Service]]"""
+        """:type: dict[str, list[Service]]"""
+        self._diabled_service_list = []  # all disabled service
+        """:type: list[Service]"""
 
         self._etcd_options = etcd_options
         self._ec = etcd.Client(**self._etcd_options)
@@ -62,6 +67,31 @@ class OctpClient():
                 for service_node in result.leaves:
                     self._add_service(service_name, service_node)
 
+    #### service ####
+    def disable_service(self, service):
+        """
+
+        :param service:
+        :type service: Service
+        :return:
+        """
+
+        service_list = self._get_service_list(service.service_name)
+        service_list.remove(service)
+        self._diabled_service_list.append(service)
+
+
+    def _get_service_list(self, service_name):
+        """
+        Get service_list for the service_name.
+        :param service_name:
+        :type service_name: str
+        :return:
+        :rtype: list
+        """
+        service_list = self.service_dict[service_name]
+
+        return service_list
 
     #### waiter ####
     def add_waiter(self, service_name, waiter):
@@ -99,7 +129,7 @@ class OctpClient():
         """
 
         for waiter in self._waiter_dict[service_name]:
-            gevent.get_hub().loop.run_callback(lambda : waiter.switch(action))
+            gevent.get_hub().loop.run_callback(lambda: waiter.switch(action))
 
     #### 监听service的改动 ####
     def _start_watcher(self):
@@ -153,9 +183,9 @@ class OctpClient():
         :return:
         """
 
-        service_list = self.service_dict[service_name]
+        service_list = self._get_service_list(service_name)
         try:
-            new_service = service.Service(result.value)
+            new_service = Service(result.value)
         except Exception as e:
             # TODO
             log.warn(e)
@@ -174,7 +204,7 @@ class OctpClient():
         :return:
         """
 
-        service_list = self.service_dict[service_name]
+        service_list = self._get_service_list(service_name)
 
         for index, old_service in enumerate(service_list):
             if old_service.name == result.key:
@@ -196,7 +226,7 @@ class OctpClient():
         :return:
         """
 
-        service_list = self.service_dict[service_name]
+        service_list = self._get_service_list(service_name)
 
         for index, old_service in enumerate(service_list):
             if old_service.name == result.key:
@@ -206,7 +236,7 @@ class OctpClient():
             return
 
         try:
-            new_service = service.Service(result.value)
+            new_service = Service(result.value)
         except Exception as e:
             # TODO
             log.warn(e)

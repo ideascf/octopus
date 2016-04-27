@@ -1,22 +1,23 @@
 # coding=utf-8
-import gevent
 from gevent import monkey
 monkey.patch_all()
 
-import socket
 import logging
 import sys
 from gevent import server
 import random
 
-from server import octp_server
-octp_server.log.setLevel('DEBUG')
-octp_server.log.addHandler(logging.StreamHandler(sys.stdout))
+from service import octp_server
+
+from logger import log
+log.setLevel('DEBUG')
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 server_info = {
     'addr': {'host': 'localhost', 'port': random.randint(9000, 10000)},
     'timeout': 1000,
 }
+
 
 def handle(client, addr):
     """
@@ -32,6 +33,7 @@ def handle(client, addr):
     client.send('pong')
 
     client.close()
+
 
 def main():
     os = octp_server.OctpServer({}, 'test', server_info)

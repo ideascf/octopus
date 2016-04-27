@@ -30,3 +30,13 @@ def locker_name(service_name):
         return name[1:]
     else:
         return name
+
+
+def human_time(time=None):
+    """
+    将秒级时间转换为微秒级
+    :param float time: 妙级的时间
+    :return int: 毫秒级时间
+    """
+
+    return int(time * 1000000)
