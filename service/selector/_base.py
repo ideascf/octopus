@@ -7,6 +7,7 @@ from gevent import Timeout
 import time
 
 from service.octp_client import OctpClient
+from service.service import Service
 import err
 import constant
 
@@ -47,6 +48,16 @@ class BaseSelector(object):
             self._wait(constant.SERVICE_ACTION.ADD, timeout)
 
         return self._get_service()
+
+    def disable_service(self, service):
+        """
+
+        :param service:
+        :type service: Service
+        :return:
+        """
+
+        self._oc.disable_service(service)
 
     def _get_service(self):
         raise NotImplementedError
