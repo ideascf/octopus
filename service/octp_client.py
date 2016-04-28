@@ -8,11 +8,12 @@ from .service import Service
 from proto import service_proto
 import err
 import constant
+from util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpClient(object):
+class OctpClient(Stoppable):
 
     def __init__(self, etcd_options, service_names):
         """
@@ -24,9 +25,14 @@ class OctpClient(object):
         :return:
         """
 
+        super(OctpClient, self).__init__()
+
         self.service_names = service_names
         self.service_dict = {}  # 所有service_name 对应的service list
         """:type: dict[str, list[Service]]"""
+        for service_name in self.service_names:
+            self.service_dict[service_name] = []
+
         self._diabled_service_list = []  # all disabled service
         """:type: list[Service]"""
 
@@ -34,24 +40,31 @@ class OctpClient(object):
         self._ec = etcd.Client(**self._etcd_options)
         """:type: etcd.Client"""
 
-        self._watcher_dict = {
-            service_name: gevent.spawn(self._watcher_handler, service_name)
-            for service_name in self.service_names
-        }
+        self._watcher_dict = None
+        """:type: dict[str, Greenlet]"""
         self._waiter_dict = {
             service_name: set()
             for service_name in self.service_names
         }
         """:type: dict[str, set[Waiter]]"""
+        self._watcher_starter_coroutine = None
+        """:type: Greenlet"""
 
-        self._init()
 
-    def _init(self):
-        for service_name in self.service_names:
-            self.service_dict[service_name] = []
+    def _start_handler(self):
+        self._watcher_dict = {
+            service_name: gevent.spawn(self._watcher_handler, service_name)
+            for service_name in self.service_names
+        }
+        self._watcher_starter_coroutine = gevent.spawn(self._start_watcher)
 
         self._get_initialize_service()  # 获取当前的service列表
-        gevent.spawn(self._start_watcher)  # 开启独立的协程用于监听service的变更
+
+    def _stop_handler(self):
+        gevent.joinall([self._watcher_starter_coroutine,])
+
+    def _restart_handler(self):
+        pass
 
     def _get_initialize_service(self):
         for service_name in self.service_names:
@@ -135,7 +148,7 @@ class OctpClient(object):
         gevent.joinall(self._watcher_dict.values())
 
     def _watcher_handler(self, service_name):
-        while True:
+        while not self._stop:
             try:
                 result = service_proto.watch(self._ec, service_name, timeout=10)
                 self._deal_watch_result(service_name, result)

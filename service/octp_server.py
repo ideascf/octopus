@@ -7,21 +7,26 @@ import gevent
 import err
 import constant
 from proto import service_proto
+from util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpServer(object):
-
+class OctpServer(Stoppable):
     def __init__(self, etcd_options, service_name, service_addr):
+        super(OctpServer, self).__init__()
+
         self.etcd_options = etcd_options
         self.service_name = service_name
         self.service_addr = service_addr
 
         self.ec = etcd.Client(**self.etcd_options)
         self._token = ''
+        self._watcher_coroutine = None
+        self._heartbeat_coroutine = None
 
-    def init(self):
+
+    def _start_handler(self):
         """
         publish service into etcd.
         :return:
@@ -31,11 +36,16 @@ class OctpServer(object):
         # STEP 1: publish first.
         self._publish()
 
-        gevent.spawn(self._start_watcher)  # 启动etcd服务监听器
-        gevent.spawn(self._heartbeat)  # 启动心跳包
+        self._watcher_coroutine = gevent.spawn(self._start_watcher)  # 启动etcd服务监听器
+        self._heartbeat_coroutine = gevent.spawn(self._heartbeat)  # 启动心跳包
 
-    def destroy(self):
+    def _stop_handler(self):
+        gevent.joinall([self._watcher_coroutine, self._heartbeat_coroutine])
+
         service_proto.unregister(self.ec, self._token)
+
+    def _restart_handler(self):
+        pass
 
     def _start_watcher(self):
         """
@@ -43,7 +53,7 @@ class OctpServer(object):
         :return:
         """
 
-        while True:
+        while not self._stop:
             try:
                 self.ec.watch(constant.ROOT_NODE, timeout=constant.WATCH_TIMEOUT)
             except etcd.EtcdWatchTimedOut:
@@ -57,8 +67,8 @@ class OctpServer(object):
                 raise
 
     def _heartbeat(self):
-        while True:
-            log.debug('refresh ttl for %s', self.service_name)
+        while not self._stop:
+            log.debug('refresh ttl for service(%s)', self.service_name)
             service_proto.alive(self.ec, self.service_name, self._token)
             time.sleep(constant.SERVICE_REFRESH_INTERVAL)
 
