@@ -6,11 +6,12 @@ import gevent
 from proto import config_proto
 import constant
 import err
+from util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpConfig(object):
+class OctpConfig(Stoppable):
     def __init__(self, etcd_options, service_name, handler):
         """
 
@@ -21,18 +22,22 @@ class OctpConfig(object):
         :return:
         """
 
+        super(OctpConfig, self).__init__()
+
         self.etcd_options = etcd_options
         self.service_name = service_name
         self.handler = handler
 
         self.ec = etcd.Client(**etcd_options)
-        self._quit = False
-        self._watcher = self._start_wather()
 
+    def _start_handler(self):
         self._load()
+        self._watcher_coroutine = gevent.spawn(self._start_wather)
+        log.info('OctpConfig(%s) started', self.service_name)
 
-    def quit(self):
-        self._quit = True
+    def _stop_handler(self):
+        gevent.joinall([self._watcher_coroutine,])
+        log.info('OctpConfig(%s) stopped', self.service_name)
 
     @property
     def handler(self):
@@ -58,7 +63,7 @@ class OctpConfig(object):
         return gevent.spawn(self._watcher_handler)
 
     def _watcher_handler(self):
-        while self._quit:
+        while not self._stop:
             try:
                 result = config_proto.watch(self.ec, self.service_name, timeout=10)
                 self._deal_watch_result(result)

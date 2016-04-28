@@ -39,10 +39,14 @@ class OctpServer(Stoppable):
         self._watcher_coroutine = gevent.spawn(self._start_watcher)  # 启动etcd服务监听器
         self._heartbeat_coroutine = gevent.spawn(self._heartbeat)  # 启动心跳包
 
+        log.info('OctpServer(%s) started.', self.service_name)
+
     def _stop_handler(self):
         gevent.joinall([self._watcher_coroutine, self._heartbeat_coroutine])
 
         service_proto.unregister(self.ec, self._token)
+
+        log.info('OctpServer(%s) stopped.', self.service_name)
 
     def _restart_handler(self):
         pass

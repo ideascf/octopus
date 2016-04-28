@@ -59,9 +59,11 @@ class OctpClient(Stoppable):
         self._watcher_starter_coroutine = gevent.spawn(self._start_watcher)
 
         self._get_initialize_service()  # 获取当前的service列表
+        log.info('OctpClient(%s) started.', self.service_names)
 
     def _stop_handler(self):
         gevent.joinall([self._watcher_starter_coroutine,])
+        log.info('OctpClient(%s) stopped.', self.service_names)
 
     def _restart_handler(self):
         pass
