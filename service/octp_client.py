@@ -197,9 +197,9 @@ class OctpClient(Stoppable):
 
         service_list = self._get_service_list(service_name)
         try:
-            new_service = Service(result.key, result.value)
-        except Exception as e:
-            # TODO
+            new_service = Service(service_name, result.key, result.value)
+        except err.OctpServiceInfoError as e:
+            # ignore invalid service_info
             log.warn(e)
             return
 
@@ -248,9 +248,9 @@ class OctpClient(Stoppable):
             return
 
         try:
-            new_service = Service(result.key, result.value)
-        except Exception as e:
-            # TODO
+            new_service = Service(service_name, result.key, result.value)
+        except err.OctpServiceInfoError as e:
+            # ignore invalid service_info
             log.warn(e)
             return
         else:

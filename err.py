@@ -42,6 +42,12 @@ class OctpServiceNotFoundError(OctpServiceError):
     pass
 
 
+class OctpServiceInfoError(OctpServiceError):
+    """
+    Got some invalid service_info from etcd.
+    """
+    pass
+
 class OctpServiceInvalidState(OctpServiceError):
     """
     非法的状态
