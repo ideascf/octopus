@@ -28,10 +28,11 @@ class OctpClient(Stoppable):
         super(OctpClient, self).__init__()
 
         self.service_names = service_names
-        self.service_dict = {}  # 所有service_name 对应的service list
+        self.service_dict = {  # 所有service_name 对应的service list
+            service_name: []
+            for service_name in self.service_names
+        }
         """:type: dict[str, list[Service]]"""
-        for service_name in self.service_names:
-            self.service_dict[service_name] = []
 
         self._diabled_service_list = []  # all disabled service
         """:type: list[Service]"""
@@ -40,7 +41,10 @@ class OctpClient(Stoppable):
         self._ec = etcd.Client(**self._etcd_options)
         """:type: etcd.Client"""
 
-        self._watcher_dict = None
+        self._watcher_dict = {
+            service_name: gevent.spawn(self._watcher_handler, service_name)
+            for service_name in self.service_names
+        }
         """:type: dict[str, Greenlet]"""
         self._waiter_dict = {
             service_name: set()
@@ -52,10 +56,6 @@ class OctpClient(Stoppable):
 
 
     def _start_handler(self):
-        self._watcher_dict = {
-            service_name: gevent.spawn(self._watcher_handler, service_name)
-            for service_name in self.service_names
-        }
         self._watcher_starter_coroutine = gevent.spawn(self._start_watcher)
 
         self._get_initialize_service()  # 获取当前的service列表
@@ -175,11 +175,9 @@ class OctpClient(Stoppable):
         elif result.action in ('delete', 'expire', 'compareAndDelete'):
             self._del_service(service_name, result)
             action = constant.SERVICE_ACTION.DEL
-        elif result.action in ('set', 'compareAndSwap'):
+        elif result.action in ('set', 'compareAndSwap', 'update',):
             self._update_service(service_name, result)
             action = constant.SERVICE_ACTION.UPDATE
-        elif result.action in ('update',):
-            pass
         else:
             raise err.OctpServiceInvalidState('Encounter invalid action: %s', result.action)
 
@@ -199,7 +197,7 @@ class OctpClient(Stoppable):
 
         service_list = self._get_service_list(service_name)
         try:
-            new_service = Service(result.value)
+            new_service = Service(result.key, result.value)
         except Exception as e:
             # TODO
             log.warn(e)
@@ -250,7 +248,7 @@ class OctpClient(Stoppable):
             return
 
         try:
-            new_service = Service(result.value)
+            new_service = Service(result.key, result.value)
         except Exception as e:
             # TODO
             log.warn(e)
