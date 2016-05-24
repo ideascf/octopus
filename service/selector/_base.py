@@ -33,7 +33,7 @@ class BaseSelector(object):
         self.service_name = service_name
 
         self._oc = oc
-        self._service_lsit = oc.service_dict[service_name]
+        self._service_list = oc.service_dict[service_name]
 
     def get_service(self, timeout=None):
         """
@@ -44,7 +44,7 @@ class BaseSelector(object):
         :rtype: None | Service
         """
 
-        if len(self._service_lsit) == 0:
+        if len(self._service_list) == 0:
             self._wait(constant.SERVICE_ACTION.ADD, timeout)
 
         return self._get_service()
