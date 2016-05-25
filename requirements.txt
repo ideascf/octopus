@@ -1,3 +1,4 @@
 --index https://pypi.python.org/simple/
 
 python-etcd===0.4.3
+gevent===1.0.2

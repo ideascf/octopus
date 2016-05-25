@@ -40,9 +40,9 @@ def main():
     s = server.StreamServer(tuple(server_info['addr'].values()), handle)
     s.start()
 
-    os.init()
+    os.start()
     s.serve_forever()
-    os.destroy()
+    os.stop()
 
 
 if __name__ == '__main__':

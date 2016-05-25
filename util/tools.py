@@ -32,6 +32,18 @@ def locker_name(service_name):
         return name
 
 
+def config_name(service_name):
+    """
+    Get config node name for the service_name.
+    :param service_name:
+    :type service_name: str
+    :return:
+    :rtype: str
+    """
+
+    return os.path.join(constant.CONFIG_NODE, service_name)
+
+
 def human_time(time=None):
     """
     将秒级时间转换为微秒级

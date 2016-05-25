@@ -8,11 +8,12 @@ from .service import Service
 from proto import service_proto
 import err
 import constant
+from util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
 
-class OctpClient():
+class OctpClient(Stoppable):
 
     def __init__(self, etcd_options, service_names):
         """
@@ -24,9 +25,15 @@ class OctpClient():
         :return:
         """
 
+        super(OctpClient, self).__init__()
+
         self.service_names = service_names
-        self.service_dict = {}  # 所有service_name 对应的service list
+        self.service_dict = {  # 所有service_name 对应的service list
+            service_name: []
+            for service_name in self.service_names
+        }
         """:type: dict[str, list[Service]]"""
+
         self._diabled_service_list = []  # all disabled service
         """:type: list[Service]"""
 
@@ -38,20 +45,28 @@ class OctpClient():
             service_name: gevent.spawn(self._watcher_handler, service_name)
             for service_name in self.service_names
         }
+        """:type: dict[str, Greenlet]"""
         self._waiter_dict = {
             service_name: set()
             for service_name in self.service_names
         }
         """:type: dict[str, set[Waiter]]"""
+        self._watcher_starter_coroutine = None
+        """:type: Greenlet"""
 
-        self._init()
 
-    def _init(self):
-        for service_name in self.service_names:
-            self.service_dict[service_name] = []
+    def _start_handler(self):
+        self._watcher_starter_coroutine = gevent.spawn(self._start_watcher)
 
         self._get_initialize_service()  # 获取当前的service列表
-        gevent.spawn(self._start_watcher)  # 开启独立的协程用于监听service的变更
+        log.info('OctpClient(%s) started.', self.service_names)
+
+    def _stop_handler(self):
+        gevent.joinall([self._watcher_starter_coroutine,])
+        log.info('OctpClient(%s) stopped.', self.service_names)
+
+    def _restart_handler(self):
+        pass
 
     def _get_initialize_service(self):
         for service_name in self.service_names:
@@ -79,7 +94,6 @@ class OctpClient():
         service_list = self._get_service_list(service.service_name)
         service_list.remove(service)
         self._diabled_service_list.append(service)
-
 
     def _get_service_list(self, service_name):
         """
@@ -136,19 +150,19 @@ class OctpClient():
         gevent.joinall(self._watcher_dict.values())
 
     def _watcher_handler(self, service_name):
-        while True:
+        while not self._stop:
             try:
                 result = service_proto.watch(self._ec, service_name, timeout=10)
                 self._deal_watch_result(service_name, result)
             except etcd.EtcdWatchTimedOut:
-                log.debug('watch timeout.')
+                log.debug('service watch timeout.')
                 continue
 
     def _deal_watch_result(self, service_name, result):
         """
 
         :param result: watch 返回的EtcdResult对象
-        :type result: etct.EtcdResult
+        :type result: etcd.EtcdResult
         :return:
         """
 
@@ -161,11 +175,9 @@ class OctpClient():
         elif result.action in ('delete', 'expire', 'compareAndDelete'):
             self._del_service(service_name, result)
             action = constant.SERVICE_ACTION.DEL
-        elif result.action in ('set', 'compareAndSwap'):
+        elif result.action in ('set', 'compareAndSwap', 'update',):
             self._update_service(service_name, result)
             action = constant.SERVICE_ACTION.UPDATE
-        elif result.action in ('update',):
-            pass
         else:
             raise err.OctpServiceInvalidState('Encounter invalid action: %s', result.action)
 
@@ -185,9 +197,9 @@ class OctpClient():
 
         service_list = self._get_service_list(service_name)
         try:
-            new_service = Service(result.value)
-        except Exception as e:
-            # TODO
+            new_service = Service(service_name, result.key, result.value)
+        except err.OctpServiceInfoError as e:
+            # ignore invalid service_info
             log.warn(e)
             return
 
@@ -236,9 +248,9 @@ class OctpClient():
             return
 
         try:
-            new_service = Service(result.value)
-        except Exception as e:
-            # TODO
+            new_service = Service(service_name, result.key, result.value)
+        except err.OctpServiceInfoError as e:
+            # ignore invalid service_info
             log.warn(e)
             return
         else:
