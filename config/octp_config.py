@@ -3,10 +3,10 @@ import logging
 import etcd
 import gevent
 
-from proto import config_proto
-import constant
-import err
-from util.stoppable import Stoppable
+from octopus import constant
+from octopus import err
+from octopus.proto import config_proto
+from octopus.util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

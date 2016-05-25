@@ -2,7 +2,7 @@
 import logging
 
 from ._base import BaseSelector
-import constant
+from octopus import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

@@ -4,9 +4,9 @@ import etcd
 import logging
 import json
 
-import err
-import constant
-from util import tools
+from octopus import err
+from octopus import constant
+from octopus.util import tools
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

@@ -3,10 +3,11 @@ import logging
 import threading
 import time
 
-from service.selector._base import BaseSelector
-import err
-import constant
-from util import tools
+from octopus import err
+from octopus import constant
+from octopus.service.selector._base import BaseSelector
+from octopus.util import tools
+
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

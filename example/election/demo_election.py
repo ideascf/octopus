@@ -6,8 +6,8 @@ monkey.patch_all()
 import logging
 import sys
 
-from election.election import Election
-from service.octp_server import OctpServer
+from octopus.election.election import Election
+from octopus.service.octp_server import OctpServer
 
 from logger import log
 log.setLevel('DEBUG')

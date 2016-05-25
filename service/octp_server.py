@@ -4,10 +4,10 @@ import time
 import logging
 import gevent
 
-import err
-import constant
-from proto import service_proto
-from util.stoppable import Stoppable
+from octopus import err
+from octopus import constant
+from octopus.proto import service_proto
+from octopus.util.stoppable import Stoppable
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
@@ -97,7 +97,7 @@ class OctpServer(Stoppable):
         :rtype: gevent.Greenlet
         """
 
-        co = gevent.spawn(self._start_watcher)
+        co = gevent.spawn(self._watcher_handler)
         log.info('watcher_handler(%s) started.', co)
 
         return co

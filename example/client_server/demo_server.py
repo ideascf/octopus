@@ -7,7 +7,7 @@ import sys
 from gevent import server
 import random
 
-from service import octp_server
+from octopus.service import octp_server
 
 from logger import log
 log.setLevel('DEBUG')

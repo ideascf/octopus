@@ -6,10 +6,10 @@ from gevent.hub import Waiter
 from gevent import Timeout
 import time
 
-from service.octp_client import OctpClient
-from service.service import Service
-import err
-import constant
+from octopus.service.octp_client import OctpClient
+from octopus.service.service import Service
+from octopus import err
+from octopus import constant
 
 log = logging.getLogger(constant.LOGGER_NAME)
 
