@@ -14,6 +14,17 @@ log = logging.getLogger(constant.LOGGER_NAME)
 
 class OctpServer(Stoppable):
     def __init__(self, etcd_options, service_name, service_addr):
+        """
+
+        :param etcd_options: Options of etcd.
+        :param service_name: Name of current service.
+        :param service_addr: Address of current service.
+        :type etcd_options: dict
+        :type service_name: str
+        :type service_addr: dict
+        :return:
+        """
+
         super(OctpServer, self).__init__()
 
         self.etcd_options = etcd_options
@@ -28,9 +39,7 @@ class OctpServer(Stoppable):
     #### stoppable handler method ####
     def _start_handler(self):
         """
-        publish service into etcd.
-        :return:
-        :attention: Please ensure Listen completed BEFORE publish service into etcd.
+        Handle start event.
         """
 
         # STEP 1: publish first.
@@ -42,6 +51,10 @@ class OctpServer(Stoppable):
         log.info('OctpServer(%s) started.', self.service_name)
 
     def _stop_handler(self):
+        """
+        Handle stop event.
+        """
+
         gevent.joinall([self._watcher_co, self._heartbeat_co])
 
         service_proto.unregister(self.ec, self._token)
@@ -53,6 +66,11 @@ class OctpServer(Stoppable):
 
     #### action method ####
     def _publish(self):
+        """
+        Start coroutine for publish.
+        :return:
+        """
+
         for retry in range(constant.ETCD_RECONNECT_MAX_RETRY_INIT):
             try:
                 co = gevent.spawn(self._publish_handler)
@@ -98,6 +116,11 @@ class OctpServer(Stoppable):
 
     #### coroutine handler ####
     def _publish_handler(self):
+        """
+        Handler for publish service into etcd.
+        :return:
+        """
+
         try:
             self._token = service_proto.register(self.ec, self.service_name, self.service_addr)
         except etcd.EtcdConnectionFailed:
@@ -108,6 +131,10 @@ class OctpServer(Stoppable):
             log.info('publish service(%s: %s) to etcd SUCCESS.', self.service_name, self.service_addr)
 
     def _watcher_handler(self):
+        """
+        Handler for watch etcd's health.
+        """
+
         while not self._stop:
             try:
                 self.ec.watch(constant.ROOT_NODE, timeout=constant.WATCH_TIMEOUT)
@@ -122,6 +149,10 @@ class OctpServer(Stoppable):
                 raise
 
     def _heartbeat_handler(self):
+        """
+        Handler for keep alive.
+        """
+
         while not self._stop:
             log.debug('refresh ttl for service(%s)', self.service_name)
             service_proto.alive(self.ec, self.service_name, self._token)
