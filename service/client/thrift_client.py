@@ -6,12 +6,12 @@ import time
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket, TTransport
 
+from octopus import err
+from octopus import constant
 from ._base import BaseClient
-from service.selector._base import BaseSelector
-from service.service import Service
-import err
-import constant
-from util import tools
+from octopus.service.selector._base import BaseSelector
+from octopus.service.service import Service
+from octopus.util import tools
 
 
 log = logging.getLogger(constant.LOGGER_NAME)

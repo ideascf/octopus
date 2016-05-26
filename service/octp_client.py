@@ -5,10 +5,10 @@ import logging
 from gevent.hub import Waiter
 
 from .service import Service
-from proto import service_proto
-import err
-import constant
-from util.stoppable import Stoppable
+from octopus import err
+from octopus import constant
+from octopus.util.stoppable import Stoppable
+from octopus.proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

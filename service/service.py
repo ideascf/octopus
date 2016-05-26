@@ -3,8 +3,8 @@ import json
 import logging
 import datetime
 
-import constant
-import err
+from octopus import constant
+from octopus import err
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

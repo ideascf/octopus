@@ -2,9 +2,10 @@
 import etcd
 import logging
 
-from util import tools
-import constant
-import err
+from octopus import constant
+from octopus import err
+from octopus.util import tools
+
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

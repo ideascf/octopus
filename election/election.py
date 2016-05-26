@@ -3,10 +3,10 @@ import logging
 import etcd
 import gevent
 
-import err
-import constant
-from service.octp_server import OctpServer
-from proto import service_proto
+from octopus import err
+from octopus import constant
+from octopus.service.octp_server import OctpServer
+from octopus.proto import service_proto
 
 log = logging.getLogger(constant.LOGGER_NAME)
 

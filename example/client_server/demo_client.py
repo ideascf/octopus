@@ -7,8 +7,8 @@ import sys
 import logging
 import socket
 
-from service import octp_client
-from service.selector import round_selector, random_selector
+from octopus.service import octp_client
+from octopus.service.selector import round_selector, random_selector
 
 from logger import log
 log.setLevel('DEBUG')
