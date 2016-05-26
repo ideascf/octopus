@@ -1,7 +1,7 @@
 # coding=utf-8
 import os
 
-import constant
+from octopus import constant
 
 
 def service_dir_name(service_name):
