@@ -51,11 +51,7 @@ class OctpClient(Stoppable):
 
     def _start_handler(self):
         for service_name in self.service_names:
-            index = self._root_node().etcd_index
-
-            result = self._load_service_list(service_name)
-            if result:
-                index = result.etcd_index
+            index = self._load_service_list(service_name)
 
             self._watcher_dict[service_name] = gevent.spawn(self._watcher_handler, service_name, index)
 
@@ -87,11 +83,12 @@ class OctpClient(Stoppable):
         """
 
         :param service_name:
-        :return:
-        :rtype: None | etcd.EtcdResult
+        :return:  next watch waitIndex
+        :rtype: int
         """
 
         result = None
+        index = self._root_node().etcd_index + 1
 
         try:
             result = service_proto.get(self._ec, service_name)
@@ -107,7 +104,10 @@ class OctpClient(Stoppable):
                 for service_node in result.leaves:
                     self._add_service(service_name, service_node)
 
-        return result
+        if result:
+            index = result.etcd_index + 1
+
+        return index
 
     def _get_service_list(self, service_name):
         """
@@ -178,13 +178,9 @@ class OctpClient(Stoppable):
             except etcd.EtcdWatchTimedOut:
                 log.debug('service watch timeout.')
             except etcd.EtcdEventIndexCleared:  # index is too small, should fetch full node.
-                root_node = self._root_node()
-                result = self._load_service_list(service_name)  # miss event yet, reload.
-
-                if result:
-                    index = result.etcd_index
-                else:  # service node is disappear. shouldn't fail into this condition.
-                    index = root_node.etcd_index  # use root node etcd_index, watch again
+                index = self._load_service_list(service_name)  # miss event yet, reload.
+            except Exception as e:
+                log.error(e)
 
     def _deal_watch_result(self, service_name, result):
         """

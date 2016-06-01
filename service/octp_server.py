@@ -110,7 +110,7 @@ class OctpServer(Stoppable):
         """
 
         co = gevent.spawn(self._heartbeat_handler)
-        log.info('watcher_handler(%s) started.', co)
+        log.info('heartbeat_handler(%s) started.', co)
 
         return co
 
