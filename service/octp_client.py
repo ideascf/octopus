@@ -41,46 +41,34 @@ class OctpClient(Stoppable):
         self._ec = etcd.Client(**self._etcd_options)
         """:type: etcd.Client"""
 
-        self._watcher_dict = {
-            service_name: gevent.spawn(self._watcher_handler, service_name)
-            for service_name in self.service_names
-        }
+        self._watcher_dict = {}
         """:type: dict[str, Greenlet]"""
         self._waiter_dict = {
             service_name: set()
             for service_name in self.service_names
         }
         """:type: dict[str, set[Waiter]]"""
-        self._watcher_starter_coroutine = None
-        """:type: Greenlet"""
-
 
     def _start_handler(self):
-        self._watcher_starter_coroutine = gevent.spawn(self._start_watcher)
+        for service_name in self.service_names:
+            index = self._root_node().etcd_index
 
-        self._get_initialize_service()  # 获取当前的service列表
+            result = self._load_service_list(service_name)
+            if result:
+                index = result.etcd_index
+
+            self._watcher_dict[service_name] = gevent.spawn(self._watcher_handler, service_name, index)
+
+
         log.info('OctpClient(%s) started.', self.service_names)
 
     def _stop_handler(self):
-        gevent.joinall([self._watcher_starter_coroutine,])
+        gevent.joinall(self._watcher_dict.values())
         log.info('OctpClient(%s) stopped.', self.service_names)
 
     def _restart_handler(self):
         pass
 
-    def _get_initialize_service(self):
-        for service_name in self.service_names:
-            try:
-                result = service_proto.get(self._ec, service_name)
-            except err.OctpServiceNotFoundError:
-                log.warn('Now, NO node for service(%s).', service_name)
-                continue
-
-            if not result._children:
-                log.warn('Now, NO any server for service(%s).', service_name)
-            else:
-                for service_node in result.leaves:
-                    self._add_service(service_name, service_node)
 
     #### service ####
     def disable_service(self, service):
@@ -94,6 +82,32 @@ class OctpClient(Stoppable):
         service_list = self._get_service_list(service.service_name)
         service_list.remove(service)
         self._diabled_service_list.append(service)
+
+    def _load_service_list(self, service_name):
+        """
+
+        :param service_name:
+        :return:
+        :rtype: None | etcd.EtcdResult
+        """
+
+        result = None
+
+        try:
+            result = service_proto.get(self._ec, service_name)
+        except err.OctpServiceNotFoundError:
+            log.warn('Now, NO node for service(%s).', service_name)
+        else:
+            if not result._children:
+                log.warn('Now, NO any server for service(%s).', service_name)
+            else:
+                service_list = self._get_service_list(service_name)
+                service_list[:] = []  # clear it.
+
+                for service_node in result.leaves:
+                    self._add_service(service_name, service_node)
+
+        return result
 
     def _get_service_list(self, service_name):
         """
@@ -146,17 +160,31 @@ class OctpClient(Stoppable):
             gevent.get_hub().loop.run_callback(lambda: waiter.switch(action))
 
     #### 监听service的改动 ####
-    def _start_watcher(self):
-        gevent.joinall(self._watcher_dict.values())
+    def _watcher_handler(self, service_name, index=None):
+        """
 
-    def _watcher_handler(self, service_name):
+        :param service_name:
+        :param index: The current etcd_index, to avoid miss some event
+        :return:
+        """
+
         while not self._stop:
             try:
-                result = service_proto.watch(self._ec, service_name, timeout=10)
+                result = service_proto.watch(self._ec, service_name, index=index, timeout=10)
                 self._deal_watch_result(service_name, result)
+
+                # you should see: https://coreos.com/etcd/docs/latest/api.html#waiting-for-a-change
+                index = result.modifiedIndex + 1
             except etcd.EtcdWatchTimedOut:
                 log.debug('service watch timeout.')
-                continue
+            except etcd.EtcdEventIndexCleared:  # index is too small, should fetch full node.
+                root_node = self._root_node()
+                result = self._load_service_list(service_name)  # miss event yet, reload.
+
+                if result:
+                    index = result.etcd_index
+                else:  # service node is disappear. shouldn't fail into this condition.
+                    index = root_node.etcd_index  # use root node etcd_index, watch again
 
     def _deal_watch_result(self, service_name, result):
         """
@@ -256,3 +284,7 @@ class OctpClient(Stoppable):
         else:
             service_list[index] = new_service
             log.info('Update service (%s : %s -> %s)', service_name, old_service, new_service)
+
+    #### helper ####
+    def _root_node(self):
+        return self._ec.get('/')

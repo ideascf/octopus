@@ -61,7 +61,7 @@ def unregister(ec, service_token):
         return True
 
 
-def watch(ec, service_name, timeout=None):
+def watch(ec, service_name, index=None, timeout=None, recursive=True):
     """
     用来监听一个服务集群的改动
     :param ec:
@@ -73,7 +73,7 @@ def watch(ec, service_name, timeout=None):
     :return:
     """
 
-    return ec.watch(tools.service_dir_name(service_name), timeout=timeout, recursive=True)
+    return ec.watch(tools.service_dir_name(service_name), index=index, timeout=timeout, recursive=recursive)
 
 
 def watch_locker(ec, service_locker_key, timeout=None):
