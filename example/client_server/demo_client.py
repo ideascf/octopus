@@ -9,10 +9,14 @@ import socket
 
 from octopus.service import octp_client
 from octopus.service.selector import round_selector, random_selector
+from octopus.logger import log
 
-from logger import log
 log.setLevel('DEBUG')
-log.addHandler(logging.StreamHandler(sys.stdout))
+
+hdlr = logging.StreamHandler(sys.stdout)
+hdlr.setFormatter(logging.Formatter("%(filename)s:%(lineno)d-%(levelname)s:%(name)s:%(message)s"))
+log.addHandler(hdlr)
+log.addHandler(logging.StreamHandler(open('./c.log', 'w')))
 
 
 def main():

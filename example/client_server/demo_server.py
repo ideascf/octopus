@@ -8,8 +8,8 @@ from gevent import server
 import random
 
 from octopus.service import octp_server
+from octopus.logger import log
 
-from logger import log
 log.setLevel('DEBUG')
 log.addHandler(logging.StreamHandler(sys.stdout))
 
@@ -47,3 +47,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+#

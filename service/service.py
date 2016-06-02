@@ -72,7 +72,8 @@ class Service(object):
         except Exception as e:
             log.warn('parse service_info error: %s', e)
 
-            raise err.OctpServiceInfoError('Got invalid service_info(%s) from etcd. Should be ignore.', service_info)
+            raise err.OctpServiceInfoError('Got invalid service_info(%s) from etcd for (%s). Should be ignore.'
+                                           % (service_info, self.service_name))
 
     def __str__(self):
         return _SERVICE_STR_FORMATTER.format(name=self.name, addr=self.addr)

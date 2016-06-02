@@ -170,8 +170,10 @@ class OctpClient(Stoppable):
 
         while not self._stop:
             try:
+                log.debug('watch(%s) index is %s', service_name, index)
                 result = service_proto.watch(self._ec, service_name, index=index, timeout=10)
                 self._deal_watch_result(service_name, result)
+                log.info('modifiedIndex is %s', result.modifiedIndex)
 
                 # you should see: https://coreos.com/etcd/docs/latest/api.html#waiting-for-a-change
                 index = result.modifiedIndex + 1
@@ -181,6 +183,8 @@ class OctpClient(Stoppable):
                 index = self._load_service_list(service_name)  # miss event yet, reload.
             except Exception as e:
                 log.error(e)
+                import traceback
+                log.error(traceback.format_exc())
 
     def _deal_watch_result(self, service_name, result):
         """
