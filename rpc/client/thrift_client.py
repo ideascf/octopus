@@ -18,7 +18,7 @@ log = logging.getLogger(constant.LOGGER_NAME)
 
 
 class ThriftClient(BaseClient):
-    def __init__(self, thrift_mod, selector, **options):
+    def __init__(self, selector, thrift_mod, framed=False, timeout=None, failover=None):
         """
 
         :param thrift_mod:
@@ -28,15 +28,14 @@ class ThriftClient(BaseClient):
         :return:
         """
 
-        super(ThriftClient, self).__init__(thrift_mod, selector)
+        super(ThriftClient, self).__init__(selector, timeout, failover)
 
-        self._framed = options.pop('framed', None)
-        if len(options) != 0:
-            raise err.OctpProgramError('Unknown options: %s', options.items())
+        self._thrift_mod = thrift_mod
+        self._framed = framed
 
     def _call(self, func_name, *args, **kwargs):
         service = self._get_service()
-        client = self._connect(service)
+        client = self._gen_client(service)
 
         start_time = time.time()
         try:
@@ -61,28 +60,6 @@ class ThriftClient(BaseClient):
 
         return ret
 
-    def _deal_unavailable_service(self, service):
-        """
-
-        :param service:
-        :type service: Service
-        :return:
-        """
-
-        self._selector.disable_service(service)
-
-    def _connect(self, service):
-        """
-
-        :param service:
-        :type service: Service
-        :return:
-        """
-
-        client = self._gen_client(service)
-
-        return client
-
     def _gen_client(self, service):
         """
 
@@ -93,7 +70,7 @@ class ThriftClient(BaseClient):
 
         try:
             sock = TSocket.TSocket(service.addr['host'], service.addr['port'])
-            sock.setTimeout(self._service_timeout(service))
+            sock.setTimeout(self._rpc_timeout(service))
             if self._framed:
                 transport = TTransport.TFramedTransport(sock)
             else:

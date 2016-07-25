@@ -13,16 +13,14 @@ log = logging.getLogger(constant.LOGGER_NAME)
 
 
 class BaseClient(object):
-    def __init__(self, thrift_mod, selector, **options):
+    def __init__(self, selector, timeout=None, failover=None):
         self._selector = selector
         """:type: BaseSelector"""
-        self._thrift_mod = thrift_mod
-        """:type: """
 
-        self._raise_error = options.pop('raise_error', False)
-        """:type: bool"""
-        self._timeout = options.pop('timeout', None)
-        """:type: bool"""
+        self._timeout = timeout  # RPC timeout, unit: ms
+        """:type: float"""
+
+        self._failover = failover
 
     def __del__(self):
         # TODO close all connection
@@ -35,12 +33,21 @@ class BaseClient(object):
         return _
 
     def call(self, func_name, *args, **kwargs):
+        """
+        Call RPC function named <func_name>.
+        :param func_name:
+        :param args:  position arguments for <func_name>
+        :param kwargs: keyword arguments for <func_name>
+        :return:
+        """
+
         ret = None
 
         while True:
             try:
-                self._call(func_name, *args, **kwargs)
+                ret = self._call(func_name, *args, **kwargs)
             except err.OctpServiceUnavailable:
+                # TODO failover
                 continue
             except err.OctpError as e:
                 log.warn('Call func(%s) encounter ERROR: %s', e)
@@ -50,10 +57,25 @@ class BaseClient(object):
         return ret
 
     def _deal_unavailable_service(self, service):
-        raise NotImplementedError()
+        """
+
+        :param service:
+        :type service: Service
+        :return:
+        """
+
+        self._selector.disable_service(service)
 
     def _call(self, func_name, *args, **kwargs):
-        pass
+        """
+        真正的RPC调用方法,由子类重写
+        :param func_name:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        raise NotImplementedError('Must implemented by subclass.')
 
     def _call_log(self, service, func_name, result, cost, in_param, out_param):
         """
@@ -84,9 +106,9 @@ class BaseClient(object):
         info_list = ('{key}={value}'.format(key=key, value=value) for key, value in info.iteritems())
         out_str = '|'.join(info_list)
 
-        log.info(out_str)
+        log.debug(out_str)
 
-    def _service_timeout(self, service):
+    def _rpc_timeout(self, service):
         """
         Get timeout which is the time call service.
 
